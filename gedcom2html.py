@@ -8,7 +8,7 @@ def calc_color(type, level = 0, gender = 'M'):
    if type == 0: # not related
       c = '#aaa'
    elif type == 1: # home_person
-      c = '#00f'
+      c = '#008CFF'
    elif type == 2: # parent
       x = 10 + 240 * (1 - (level / level_max))
       c = '#%s0000' % format(int(x), '02x').upper()
@@ -141,7 +141,7 @@ class Html:
 
    def write_families(self):
       if len(self.all_persons[self.person.id].family) > 0:
-         self.__fid.write("<h2>Families and children</h2>\n")
+         self.__fid.write("<h2>Partners and children</h2>\n")
          self.__write_family(self.person.id, 0)
 
    def write_siblings(self):
@@ -330,6 +330,8 @@ class Gedcom2html:
       p.short_name = "%s %s " % (p.shortest_name, p.surname)
     
       #string_short
+
+      #TODO handle case without, or using "other" gender
       if p.gender == 'M':
          s = "<i class='fa fa-mars'></i>"
       else:
@@ -340,10 +342,10 @@ class Gedcom2html:
       s = ""
       p.birth_year = ""
       if p.birth_date <> False:
-         s = s + "<i class='fa fa-star'></i> %s " % '{0.day:02d}-{0.month:02d}-{0.year:4d}'.format(p.birth_date)
+         s = s + "<i class='fa fa-star'></i> %s " % '{0.year:4d}-{0.month:02d}-{0.day:02d}'.format(p.birth_date)
          p.birth_year = '{0.year:4d}'.format(p.birth_date)
       if p.death_date <> False:
-         s = s + "<i class='fa fa-plus'></i> %s " % '{0.day:02d}-{0.month:02d}-{0.year:4d}'.format(p.death_date)
+         s = s + "<i class='fa fa-plus'></i> %s " % '{0.year:4d}-{0.month:02d}-{0.day:02d}'.format(p.death_date)
       if p.birth_date <> False and p.death_date <> False:
       # self.death_date.year - self.birth_date.year - ((today.month, today.day) < (born.month, born.day))
          age =  p.death_date.year - p.birth_date.year
