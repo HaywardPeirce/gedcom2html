@@ -123,7 +123,7 @@ class Html:
                   
    def write_person(self):
       self.__fid.write("<div class='well'>\n")
-      self.__fid.write("<h1>%s</h1>\n" %  self.person.string_short)
+      self.__fid.write("<h1>%s</h1>\n" %  self.person.string_full_name)
       self.__fid.write("<ul>\n")
       if len(self.person.string_dates)>0:
          self.__fid.write("<li>%s\n" %  self.person.string_dates)
@@ -326,7 +326,7 @@ class Gedcom2html:
       else:
          p.shortest_name = p.first_name.split(' ')[0]
          
-      #short_name
+      #short_name - the persons first firstname and their lastname. Used in to Well, parents, partners, and children sections
       p.short_name = "%s %s " % (p.shortest_name, p.surname)
     
       #string_short
@@ -336,7 +336,14 @@ class Gedcom2html:
          s = "<i class='fa fa-mars'></i>"
       else:
          s = "<i class='fa fa-venus'></i>"
+
+      # The short version of the person's name, include their gender sign
       p.string_short = "%s %s " % (s, p.short_name)
+
+      # TODO: handle preferred and nick name cases
+      p.string_full_name = "%s %s %s " % (s, p.first_name, p.surname)
+
+
          
       #string_dates
       s = ""
@@ -362,11 +369,11 @@ class Gedcom2html:
       valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
       p.link = ''.join(c for c in s if c in valid_chars)
       
-      #string_long
+      #string_long, `sting_short` version of name along with a link to their page and birth/death dates if available
       if len(p.string_dates) > 0:
-         p.string_long = ("<a href='%s'>%s</a> <span class='dates'>%s</span>" % (p.link, p.string_short, p.string_dates))
+         p.string_long = ("<a href='%s'>%s</a> <span class='dates'>%s</span>" % (p.link, p.string_full_name, p.string_dates))
       else:
-         p.string_long = ("<a href='%s'>%s</a>" % (p.link, p.string_short))
+         p.string_long = ("<a href='%s'>%s</a>" % (p.link, p.string_full_name))
 
    def __write_index_html(self, link):
       fid = open('generated/index.html','w')
