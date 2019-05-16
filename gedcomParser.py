@@ -918,10 +918,15 @@ class Element:
         first = ""
         last = ""
         nick = ""
+        name = ""
+
+        #TODO this section is not returning the prefered last name
         if not self.is_individual():
             return first, last
         for child in self.get_child_elements():
-            if child.get_tag() == GEDCOM_TAG_NAME:
+
+            # include a check for the name aleady being set for this user. If it is, then just return that one as it's the primary name
+            if child.get_tag() == GEDCOM_TAG_NAME and not name:
                 # some older GEDCOM files don't use child tags but instead
                 # place the name in the value of the NAME tag
                 if child.get_value() != "":
@@ -941,6 +946,9 @@ class Element:
                 for childOfChild in child.get_child_elements():
                     if childOfChild.get_tag() == GEDCOM_TAG_NICKNAME:
                         nick = childOfChild.get_value()
+
+        #TODO maybe return an array of the primary and secondary name so that the other name can also be displayed
+        # maybe include things like perferred name as well. Maybe set it all up in a JSON object?
         return first, last, nick
 
     def get_gender(self):
@@ -1218,6 +1226,7 @@ class GedcomParser:
             person = Person()
             person.id = self.__element_get_id(e)
             person.first_name = e.get_name()[0]
+            #TODO sort out why this is using not the prefered family name
             person.surname = e.get_name()[1]
             person.nick_name = e.get_name()[2]
             person.notes = e.get_notes()
