@@ -304,7 +304,7 @@ function drawFanChart(json, boolAncestors){
          .attr("text-color", "#000")
          .text(function(d){return d.data.name;})
          .attr("transform", transformText)
-         .attr("font-size", "8px");
+         .attr("font-size", "10px");
          
    function transformText(d){
       if (d.depth == 0){
