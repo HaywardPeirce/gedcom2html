@@ -1,7 +1,7 @@
 from gedcomParser import GedcomParser
 from datetime import datetime
-import codecs, os, shutil, string, sys, getopt
-
+import codecs, os, shutil, string, sys, getopt, urllib
+# from urlparse import urlparse
 
 def calc_color(type, level = 0, gender = 'M'):
    level_max = 10.0;
@@ -31,9 +31,14 @@ class Html:
       self.write_header()
       self.__fid.write("<div class='row'>\n")
       self.write_person()
+      self.__fid.write("<div class='col-sm-6'>\n")
       self.write_parents()
       self.write_families()
       self.write_siblings()
+      self.__fid.write("</div><!-- col -->\n")
+      self.__fid.write("<div class='col-sm-6'>\n")
+      self.write_resources()
+      self.__fid.write("</div><!-- col -->\n")
       self.__fid.write("</div><!-- row -->\n")
       self.__fid.write("<div class='row'>\n")
       self.__fid.write("<div class='col-sm-4' id='column-left'>\n")
@@ -55,7 +60,7 @@ class Html:
       self.__fid.write("<!DOCTYPE html>\n")
       self.__fid.write("<html lang='en'>\n")
       self.__fid.write("<head>\n")
-      self.__fid.write("<title>%s</title>\n" % self.person.short_name)
+      self.__fid.write("<title>%s</title>\n" % self.person.full_name)
       self.__fid.write("<meta name=\"description\" content=\"%s\" /><meta name='viewport' content='width=device-width, initial-scale=1.0'>\n" % self.options.title) 
       self.__fid.write("<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />\n")
       self.__fid.write("<link rel='stylesheet' type='text/css' href='css/bootstrap.min.css' />\n")
@@ -69,7 +74,7 @@ class Html:
       self.__fid.write("<body>\n")
       self.__fid.write("<div class='page-header'><a href='index.html'><span class='fa fa-home'></span> %s</div></a>\n" % self.options.title)
       self.__fid.write("<div class='container'>\n")
-      
+   
    def __write_parents(self, id, level):
       s  = '   '*level
       if level == 1:
@@ -131,8 +136,22 @@ class Html:
       self.__fid.write("<li>First name(s): %s\n" %  self.person.first_name)
       if len(self.person.notes)>0:
          self.__fid.write("<li>%s\n" %  self.person.notes)
-      self.__fid.write("<ul>\n")
+      self.__fid.write("</ul>\n")
       self.__fid.write("</div>\n")
+   
+   # add a list of files accociated with the person
+   def write_resources(self):
+
+      if len(self.person.resources) > 0:
+
+         self.__fid.write("<h2>Resources</h2>\n")
+         self.__fid.write("<ul>\n")
+         for resource in self.person.resources:
+
+            # add an entry for each resource associated with the person. URL encode file names to handle special characters
+            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.quote(resource), resource))
+         
+         self.__fid.write("</ul>\n")
 
    def write_parents(self):
       if len(self.person.parent_id) > 0:
@@ -341,7 +360,11 @@ class Gedcom2html:
       p.string_short = "%s %s " % (s, p.short_name)
 
       # TODO: handle preferred and nick name cases
-      p.string_full_name = "%s %s %s " % (s, p.first_name, p.surname)
+
+      p.full_name = "%s %s " % (p.first_name, p.surname)
+
+      # full name, including sex sign 
+      p.string_full_name = "%s %s " % (s, p.full_name)
 
 
          

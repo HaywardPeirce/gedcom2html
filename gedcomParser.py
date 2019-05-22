@@ -437,6 +437,8 @@ class Gedcom:
         for family in families:
             if parent_type == "NAT":
                 for family_member in family.get_child_elements():
+
+                    # if the child element of the family is human child, and the ID of that human child's ID is the same as the the one we are looking up the parents for using this function
                     if family_member.get_tag() == GEDCOM_TAG_CHILD and family_member.get_value() == individual.get_pointer():
                         for child in family_member.get_child_elements():
                             if child.get_value() == "Natural":
@@ -465,6 +467,29 @@ class Gedcom:
                 if potential_path is not None:
                     return potential_path
         return None
+
+    def get_resources(self, resource_id_list):
+
+        # takes an input of a list of resource IDs and returns the location of the files
+
+        resource_url_list = []
+
+        element_dictionary = self.get_element_dictionary()
+
+        for resource_id in resource_id_list:
+
+            resource = element_dictionary[resource_id]
+
+            for child_element in resource.get_child_elements():
+
+                if child_element.get_tag() == 'FILE':
+                    
+                    value = child_element.get_value()
+
+                    #TODO work out how to include relitive paths. Maybe ask people to always put files in an `resources` folder at the same level as the gedcom file?
+                    resource_url_list.append(child_element.get_value())
+        
+        return resource_url_list
 
     def get_family_members(self, family, members_type="ALL"):
         """Return array of family members: individual, spouse, and children
@@ -920,6 +945,9 @@ class Element:
         nick = ""
         name = ""
 
+        names = []
+        
+
         #TODO this section is not returning the prefered last name
         if not self.is_individual():
             return first, last
@@ -950,6 +978,28 @@ class Element:
         #TODO maybe return an array of the primary and secondary name so that the other name can also be displayed
         # maybe include things like perferred name as well. Maybe set it all up in a JSON object?
         return first, last, nick
+
+    def get_resource_ids(self):
+        
+        resource_id_list = []
+        
+        # element_dictionary = self.get_element_dictionary()
+        
+        #TODO: looks like objects are nested within the child elements of each object (e.g. brith certificate object within the birth child object). Will need to recursively parse all the child objects of a person to find the resources
+        for child in self.get_child_elements():
+            tag = child.get_tag()
+            if child.get_tag() == GEDCOM_TAG_OBJECT:
+                resource_list.append(child.get_value())
+
+            for subchild in child.get_child_elements():
+                subtag = subchild.get_tag()
+
+                if subchild.get_tag() == GEDCOM_TAG_OBJECT:
+
+                    #TODO write a function (or find one) to lookup an object's URL by ID
+                    resource_id_list.append(subchild.get_value())
+
+        return resource_id_list
 
     def get_gender(self):
         """Return the gender of a person in string format
@@ -984,6 +1034,8 @@ class Element:
         date = ""
         place = ""
         sources = []
+        objects = []
+
         if not self.is_individual():
             return date, place, sources
         for child in self.get_child_elements():
@@ -995,6 +1047,9 @@ class Element:
                         place = childOfChild.get_value()
                     if childOfChild.get_tag() == GEDCOM_TAG_SOURCE:
                         sources.append(childOfChild.get_value())
+                    if childOfChild.get_tag() == GEDCOM_TAG_OBJECT:
+                        objects.append(childOfChild.get_value())
+
         return date, place, sources
 
     def get_birth_year(self):
@@ -1193,6 +1248,7 @@ class Person:
       self.first_name = ""
       self.surname = ""
       self.nick_name = ""
+      self.call_name = ""
       self.notes = ""
       self.text = ""
       self.occupation = ""
@@ -1203,6 +1259,7 @@ class Person:
       self.death_place = ""
       self.parent_id = []
       self.family = []
+      self.resources = ""
       
 class GedcomParser:
    def __init__(self, filepath):
@@ -1225,6 +1282,8 @@ class GedcomParser:
          if e.is_individual():
             person = Person()
             person.id = self.__element_get_id(e)
+
+            g= e.get_name()
             person.first_name = e.get_name()[0]
             #TODO sort out why this is using not the prefered family name
             person.surname = e.get_name()[1]
@@ -1232,6 +1291,16 @@ class GedcomParser:
             person.notes = e.get_notes()
             person.occupation = e.get_occupation()
             person.gender = e.get_gender()
+
+            # get a list of object ids associated with this person
+            resource_ids = e.get_resource_ids()
+
+            # get a list of the files 
+            resource_urls = self.__g.get_resources(resource_ids)
+
+            # assign the list of resource urls to the person object
+            person.resources = resource_urls
+
             try:
                person.birth_date = datetime.strptime(e.get_birth_data()[0], '%d %b %Y').date()
             except:
