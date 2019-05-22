@@ -480,14 +480,27 @@ class Gedcom:
 
             resource = element_dictionary[resource_id]
 
+            resource_json = {}
+
+            # loop through each child element within the object
             for child_element in resource.get_child_elements():
 
                 if child_element.get_tag() == 'FILE':
                     
-                    value = child_element.get_value()
+                    for sub_child_element in child_element.get_child_elements():
+
+                        if sub_child_element.get_tag() == 'TITL':
+                            resource_json['title'] = sub_child_element.get_value()
+
+                    # value = child_element.get_value()
 
                     #TODO work out how to include relitive paths. Maybe ask people to always put files in an `resources` folder at the same level as the gedcom file?
-                    resource_url_list.append(child_element.get_value())
+                    resource_json['url'] = child_element.get_value()
+                    
+                    # add the JSON object to the list of resources
+                    resource_url_list.append(resource_json)
+        
+        
         
         return resource_url_list
 
@@ -1295,11 +1308,8 @@ class GedcomParser:
             # get a list of object ids associated with this person
             resource_ids = e.get_resource_ids()
 
-            # get a list of the files 
-            resource_urls = self.__g.get_resources(resource_ids)
-
-            # assign the list of resource urls to the person object
-            person.resources = resource_urls
+            # get a list of JSON objects containing data about the files for this person, and assign the list of resource urls to the person object
+            person.resources = self.__g.get_resources(resource_ids)
 
             try:
                person.birth_date = datetime.strptime(e.get_birth_data()[0], '%d %b %Y').date()

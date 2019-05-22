@@ -149,7 +149,7 @@ class Html:
          for resource in self.person.resources:
 
             # add an entry for each resource associated with the person. URL encode file names to handle special characters
-            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.quote(resource), resource))
+            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.quote(resource['url']), resource['title']))
          
          self.__fid.write("</ul>\n")
 
