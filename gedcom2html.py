@@ -37,6 +37,8 @@ class Html:
       self.write_siblings()
       self.__fid.write("</div><!-- col -->\n")
       self.__fid.write("<div class='col-sm-6'>\n")
+      # self.write_residences()
+      self.write_education()
       self.write_resources()
       self.__fid.write("</div><!-- col -->\n")
       self.__fid.write("</div><!-- row -->\n")
@@ -139,6 +141,11 @@ class Html:
       self.__fid.write("</ul>\n")
       self.__fid.write("</div>\n")
    
+   # a list of educational events for a person
+   def write_education(self):
+
+      return None
+
    # add a list of files accociated with the person
    def write_resources(self):
 
