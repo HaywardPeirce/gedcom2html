@@ -1,6 +1,6 @@
 from gedcomParser import GedcomParser
 from datetime import datetime
-import codecs, os, shutil, string, sys, getopt, urllib
+import codecs, os, shutil, string, sys, getopt, urllib, urllib.parse
 # from urlparse import urlparse
 
 def calc_color(type, level = 0, gender = 'M'):
@@ -24,7 +24,7 @@ class Html:
       self.person = p
       self.options = options
       self.all_persons = all_persons
-      for id, p2 in self.all_persons.iteritems():
+      for id, p2 in self.all_persons.items():
          self.all_persons[id].color = calc_color(0)
       p.color = calc_color(1)
       self.__fid = codecs.open('generated/' + p.link, encoding='utf-8',mode='w')
@@ -55,8 +55,8 @@ class Html:
       self.__fid.write("</div><!-- row -->\n")
       self.write_footer(sources)
  
-   def __del__(self):
-      self.__fid.close()
+   # def __del__(self):
+   #    self.__fid.close()
 
    def write_header(self):
       self.__fid.write("<!DOCTYPE html>\n")
@@ -156,7 +156,7 @@ class Html:
          for resource in self.person.resources:
 
             # add an entry for each resource associated with the person. URL encode file names to handle special characters
-            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.quote(resource['url']), resource['title']))
+            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.parse.quote(resource['url']), resource['title']))
          
          self.__fid.write("</ul>\n")
 
@@ -176,7 +176,7 @@ class Html:
          for family in self.all_persons[parent_id].family:
             for child_id in family.child_id:
                if child_id not in list_of_child_ids:
-                  if child_id <> self.person.id:
+                  if child_id != self.person.id:
                      list_of_child_ids.append(str(child_id))
       if len(list_of_child_ids) > 0:
          self.__fid.write("<h2>Siblings</h2>\n")
@@ -240,7 +240,7 @@ class Html:
          i = 0
          for cid in list_of_cid:
             self.__write_json_for_fan_chart_descendants(cid, level + 1)
-            if i <> (len(list_of_cid) - 1):
+            if i != (len(list_of_cid) - 1):
                self.__fid.write('%s,\n'% white_space2)
             i = i + 1
          self.__fid.write("%s]\n"% white_space)
@@ -271,11 +271,11 @@ class Html:
       self.__fid.write("<div id='chart_navigator'></div>\n")
       self.__fid.write("<script>\n")
       self.__fid.write('var jsonNavigator = {\n   "nodes": [\n')
-      for id, p in self.all_persons.iteritems():
+      for id, p in self.all_persons.items():
          # print p.color
          self.__fid.write('      {"id": "%s", "birth_year":"%s", "url":"%s", "color": "%s"},\n' %(p.id, p.birth_year, p.link, p.color))
       self.__fid.write('   ],\n   "links":[\n')
-      for id, p in self.all_persons.iteritems():
+      for id, p in self.all_persons.items():
          for parent_id in p.parent_id:
             self.__fid.write('      {"source": "%s", "target": "%s", "type": "parent"},\n' %(p.id, parent_id))
          for index, family in enumerate(self.all_persons[id].family):
@@ -293,7 +293,7 @@ class Html:
       if len(sources) > 0:
          self.__fid.write("<br><b>Sources:</b>\n")
          self.__fid.write("<ul>\n")
-         for index, s in sources.iteritems():
+         for index, s in sources.items():
             self.__fid.write("   <li><a href='%s'>%s</a>\n" %(s.publication, s.title))
          self.__fid.write("</ul>\n")
       self.__fid.write("</div><!-- col -->\n")
@@ -378,12 +378,12 @@ class Gedcom2html:
       #string_dates
       s = ""
       p.birth_year = ""
-      if p.birth_date <> False:
+      if p.birth_date != False:
          s = s + "<i class='fa fa-star'></i> %s " % '{0.year:4d}-{0.month:02d}-{0.day:02d}'.format(p.birth_date)
          p.birth_year = '{0.year:4d}'.format(p.birth_date)
-      if p.death_date <> False:
+      if p.death_date != False:
          s = s + "<i class='fa fa-plus'></i> %s " % '{0.year:4d}-{0.month:02d}-{0.day:02d}'.format(p.death_date)
-      if p.birth_date <> False and p.death_date <> False:
+      if p.birth_date != False and p.death_date != False:
       # self.death_date.year - self.birth_date.year - ((today.month, today.day) < (born.month, born.day))
          age =  p.death_date.year - p.birth_date.year
          if age == 0:
@@ -415,8 +415,10 @@ class Gedcom2html:
       g = GedcomParser(self.options.file_path)
       all_persons = g.get_persons()
       sources = g.get_sources()
-      id_list = all_persons.keys()
-      id_list.sort()
+      # id_list = all_persons.keys()
+      # id_list.sort()
+      id_list = sorted(all_persons.keys())
+
       for id in id_list:
          self.__create_strings(all_persons[id])
       if len(self.options.home_person_id) > 0:
