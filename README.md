@@ -5,6 +5,8 @@
 1. Download a copy of `d3.v4.min.js` and place it in the `assets/js` folder. You can find this file [here](https://d3js.org/d3.v4.min.js).
 2. Download a copy of [Font Awesome 4.7.0](https://fontawesome.com/v4.7.0/get-started/), save the extracted `font-awesome-4.7.0` folder to the `assets/` folder as `font-awesome`.
 
+Please note: this project was written using python 2, and has been tested on 2.7
+
 ## Usage
 
 Generates an example set of pages with a folder `generated/` using the included demo `.ged` file for the family history of US presidents.
@@ -14,9 +16,9 @@ python exmaple.py
 
 ## Method options
 
-# g.options.file_path = "demo/dutchroyalfamily.ged"
-# g.options.title = "Family tree of the Dutch Royal Family"
-# g.options.home_person_id = "I1208"
+g.options.file_path = "demo/dutchroyalfamily.ged"
+g.options.title = "Family tree of the Dutch Royal Family"
+g.options.home_person_id = "I1208"
 
 ## An example says it all. So have a look at:
 * [Dutch Royal Family](//picnicprojects.com/gedcom2html/dutchroyalfamily/)
@@ -46,6 +48,7 @@ python exmaple.py
 - add navigation sidebar
 - move graphs into individual tabs
 - include middle names in main chart area
-- correctly display referred name (married vs brith) and nick/call name
+- correctly display ~~primary name (married vs brith)~~ and nick/call name for each 
 - add additional information along the right side of page (notes, schooling, etc)
 - ~~change chart blue colour to be lighter shade~~
+- build in support for displaying notes for each type of person event
