@@ -155,8 +155,10 @@ class Html:
          self.__fid.write("<ul>\n")
          for resource in self.person.resources:
 
+            relative_path = resource['url'].split('resources/',1)[1]
+            relative_path = '../../family-tree/resources/' + relative_path
             # add an entry for each resource associated with the person. URL encode file names to handle special characters
-            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.parse.quote(resource['url']), resource['title']))
+            self.__fid.write("<li><a href='%s'>%s</a>\n" % (urllib.parse.quote(relative_path), resource['title']))
          
          self.__fid.write("</ul>\n")
 
