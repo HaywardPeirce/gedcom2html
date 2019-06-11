@@ -999,10 +999,11 @@ class Element:
         # element_dictionary = self.get_element_dictionary()
         
         #TODO: looks like objects are nested within the child elements of each object (e.g. brith certificate object within the birth child object). Will need to recursively parse all the child objects of a person to find the resources
+        #TODO: looks like marriges are not directly related to the person object, so will have to parse those as well
         for child in self.get_child_elements():
             tag = child.get_tag()
             if child.get_tag() == GEDCOM_TAG_OBJECT:
-                resource_list.append(child.get_value())
+                resource_id_list.append(child.get_value())
 
             for subchild in child.get_child_elements():
                 subtag = subchild.get_tag()
