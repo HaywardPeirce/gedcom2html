@@ -1,6 +1,6 @@
 from gedcomParser import GedcomParser
 from datetime import datetime
-import codecs, os, shutil, string, sys, getopt, urllib, urllib.parse
+import codecs, os, shutil, string, sys, getopt, urllib, urllib.parse, json
 # from urlparse import urlparse
 
 def calc_color(type, level = 0, gender = 'M'):
@@ -188,72 +188,72 @@ class Html:
          self.__fid.write("</ul>\n")
 
    # def __write_json_line(self, s, level):
-   
-   def __write_json_for_fan_chart_ancestors(self, id, level):
-      p = self.all_persons[id]
-      white_space = '   '*level
-      white_space2 = '   '*(level-1)
-      self.__fid.write('%s{\n'% white_space2)
-      self.__fid.write('%s"name": "%s",\n'% (white_space, p.shortest_name))
-      # self.__fid.write('%s"generation": "%d",\n'% (white_space, level))
-      self.__fid.write('%s"gender": "%s",\n'% (white_space, p.gender))
-      self.__fid.write('%s"color": "%s",\n'% (white_space, p.color))
-      self.__fid.write('%s"href": "%s",\n'% (white_space, p.link))
-      # if p.birth_date == False:
-         # self.__fid.write('%s"born": "",\n' % (white_space))
-      # else:
-         # self.__fid.write('%s"born": "%s",\n'% (white_space, '{0.year:4d}'.format(p.birth_date)))
-      # self.__fid.write('%s"died": "%s",\n'% (white_space, ""))
-      # self.__fid.write('%s"gramps_id": "%s",\n'% (white_space, id))
-      if len(p.parent_id) > 0:
-         self.__fid.write('%s"children": [\n'% white_space)
-         i = 0
-         for pid in p.parent_id:
-            self.__write_json_for_fan_chart_ancestors(pid, level + 1)
-            if i == 0:
-               self.__fid.write('%s,\n'% white_space2)
-            i = i + 1
-         self.__fid.write("%s]\n"% white_space)
-      self.__fid.write("%s}\n"% white_space2)
 
-   def __write_json_for_fan_chart_descendants(self, id, level):
+   def __write_json_for_fan_chart_ancestors(self, id):
       p = self.all_persons[id]
-      white_space = '   '*level
-      white_space2 = '   '*(level-1)
-      self.__fid.write('%s{\n'% white_space2)
-      self.__fid.write('%s"name": "%s",\n'% (white_space, p.shortest_name))
-      # self.__fid.write('%s"generation": "%d",\n'% (white_space, level))
-      # self.__fid.write('%s"gender": "%s",\n'% (white_space, p.gender))
-      self.__fid.write('%s"color": "%s",\n'% (white_space, p.color))
-      self.__fid.write('%s"href": "%s",\n'% (white_space, p.link))
-      # if p.birth_date == False:
-         # self.__fid.write('%s"born": "",\n' % (white_space))
-      # else:
-         # self.__fid.write('%s"born": "%s",\n'% (white_space, '{0.year:4d}'.format(p.birth_date)))
-      # self.__fid.write('%s"died": "%s",\n'% (white_space, ""))
-      # self.__fid.write('%s"gramps_id": "%s",\n'% (white_space, id))
+
+      ancestorData = {}
+      # print("test")
+      ancestorData["name"] = p.shortest_name
+      ancestorData["gender"] = p.gender
+      ancestorData["color"] = p.color
+      ancestorData["test"] = "test"
+      ancestorData["href"] = p.link
+
+      if len(p.parent_id) > 0:
+         
+         ancestors = []
+
+         for pid in p.parent_id:
+
+            ancestors.append(json.loads(self.__write_json_for_fan_chart_ancestors(pid)))
+         
+         ancestorData["children"] = ancestors
+            
+      return json.dumps(ancestorData)
+
+   def __write_json_for_fan_chart_descendants(self, id):
+      p = self.all_persons[id]
+      
+      descendantData = {}
+      # print("tsest")
+      descendantData["name"] = p.shortest_name
+      descendantData["color"] = p.color
+      descendantData["test"] = "test"
+      descendantData["href"] = p.link
+      
       list_of_cid = []
+
+      # add the child IDs in the family to a list of child IDs
       for index, family in enumerate(p.family):
          if len(family.child_id) > 0:
             for cid in family.child_id:
                list_of_cid.append(cid)
+      
+      # if there are more than 0 children, then 
       if len(list_of_cid) > 0:
-         self.__fid.write('%s"children": [\n'% white_space)
-         i = 0
+         
+         children = []
+         
          for cid in list_of_cid:
-            self.__write_json_for_fan_chart_descendants(cid, level + 1)
-            if i != (len(list_of_cid) - 1):
-               self.__fid.write('%s,\n'% white_space2)
-            i = i + 1
-         self.__fid.write("%s]\n"% white_space)
-      self.__fid.write("%s}\n"% white_space2)
+
+            children.append(json.loads(self.__write_json_for_fan_chart_descendants(cid)))
+         
+         descendantData["children"] = children
+      
+      # print(descendantData)
+      return json.dumps(descendantData)
+
+
+
          
    def write_fan_chart_ancestors(self):
       self.__fid.write("<h3>Ancestors</h3>\n")
       self.__fid.write("<div id='fanchart_ancestors'></div>\n")
       self.__fid.write("<script>\n")
       self.__fid.write("var json_ancestors = ")
-      self.__write_json_for_fan_chart_ancestors(self.person.id, 1)
+      # self.__write_json_for_fan_chart_ancestors(self.person.id, 1)
+      self.__fid.write(self.__write_json_for_fan_chart_ancestors(self.person.id))
       self.__fid.write(";\n")
       self.__fid.write("drawFanChart(json_ancestors, 1);\n")
       self.__fid.write("</script>\n")
@@ -263,7 +263,8 @@ class Html:
       self.__fid.write("<div id='fanchart_descendants'></div>\n")
       self.__fid.write("<script>\n")
       self.__fid.write("var json_descendants = ")
-      self.__write_json_for_fan_chart_descendants(self.person.id, 1)
+      # self.__write_json_for_fan_chart_descendants(self.person.id, 1)
+      self.__fid.write(self.__write_json_for_fan_chart_descendants(self.person.id))
       self.__fid.write(";\n")
       self.__fid.write("drawFanChart(json_descendants, 0);\n")
       self.__fid.write("</script>\n")
@@ -292,12 +293,13 @@ class Html:
       self.__fid.write("<div class='col-sm-6'>\n")
       path, fname = os.path.split(self.options.file_path)
       self.__fid.write("Gedcom file <a href='%s'>%s</a> contains %d persons<br>\n" % (fname, fname , len(self.all_persons)))
-      if len(sources) > 0:
-         self.__fid.write("<br><b>Sources:</b>\n")
-         self.__fid.write("<ul>\n")
-         for index, s in sources.items():
-            self.__fid.write("   <li><a href='%s'>%s</a>\n" %(s.publication, s.title))
-         self.__fid.write("</ul>\n")
+      # TODO: figure out how to colapse sources/stop just linking to ancestry.com's home page
+      # if len(sources) > 0:
+      #    self.__fid.write("<br><b>Sources:</b>\n")
+      #    self.__fid.write("<ul>\n")
+      #    for index, s in sources.items():
+      #       self.__fid.write("   <li><a href='%s'>%s</a>\n" %(s.publication, s.title))
+      #    self.__fid.write("</ul>\n")
       self.__fid.write("</div><!-- col -->\n")
       self.__fid.write("<div class='col-sm-6'>\n")
       self.__fid.write("<center>\n")
