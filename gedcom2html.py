@@ -135,7 +135,18 @@ class Html:
       if len(self.person.string_dates)>0:
          self.__fid.write("<li>%s\n" %  self.person.string_dates)
       # if len(self.person.nick_name)>0:
-      self.__fid.write("<li>First name(s): %s\n" %  self.person.first_name)
+      # self.__fid.write("<li>First name(s): %s\n" %  self.person.first_name)
+
+      if len(self.person.names["alternatives"])>0:
+         for name in self.person.names["alternatives"]:
+            
+            if name["type"] == None:
+               self.__fid.write("<li>Birth name: %s %s\n" %  (name["first"], name["last"]))
+            elif name["type"] == "marriage":
+               self.__fid.write("<li>Married name: %s %s\n" %  (name["first"], name["last"]))
+            else:
+               self.__fid.write("<li>Other Name: %s %s\n" %  (name["first"], name["last"]))
+
       if len(self.person.notes)>0:
          self.__fid.write("<li>%s\n" %  self.person.notes)
       self.__fid.write("</ul>\n")
@@ -351,7 +362,7 @@ class Gedcom2html:
 
    def __create_strings(self, p):
       #shortest_name
-      if len(p.nick_name) > 0:
+      if p.nick_name:
          p.shortest_name = p.nick_name
       else:
          p.shortest_name = p.first_name.split(' ')[0]
@@ -361,11 +372,12 @@ class Gedcom2html:
     
       #string_short
 
-      #TODO handle case without, or using "other" gender
       if p.gender == 'M':
          s = "<i class='fa fa-mars'></i>"
-      else:
+      elif p.gender == 'F':
          s = "<i class='fa fa-venus'></i>"
+      else:
+         s = "<i class='fa fa-genderless'></i>"
 
       # The short version of the person's name, include their gender sign
       p.string_short = "%s %s " % (s, p.short_name)

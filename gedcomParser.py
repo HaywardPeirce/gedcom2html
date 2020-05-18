@@ -102,6 +102,8 @@ GEDCOM_TAG_MARRIAGE = "MARR"
 # More than one NAME line should be used for people who were known by multiple names.
 GEDCOM_TAG_NAME = "NAME"
 
+GEDCOM_TAG_TYPE = "TYPE"
+
 # Pertaining to a grouping of attributes used in describing something. Usually referring to the data required
 # to represent a multimedia object, such an audio recording, a photograph of a person, or an image of a document.
 GEDCOM_TAG_OBJECT = "OBJE"
@@ -884,16 +886,20 @@ class Element:
         :type name: str
         :rtype: bool
         """
-        (first, last) = self.get_name()
-        return last.find(name) >= 0
+        
+        names = self.get_name()
+
+        return names["preferred"]["last"].find(name) >= 0
 
     def given_match(self, name):
         """Match a string with the given names of an individual
         :type name: str
         :rtype: bool
         """
-        (first, last) = self.get_name()
-        return first.find(name) >= 0
+        
+        names = self.get_name()
+
+        return names["preferred"]["first"].find(name) >= 0
 
     def birth_year_match(self, year):
         """Match the birth year of an individual
@@ -953,44 +959,74 @@ class Element:
         """Return a person's names as a tuple: (first, last, nick)
         :rtype: tuple
         """
-        first = ""
-        last = ""
-        nick = ""
-        name = ""
+        # first = ""
+        # last = ""
+        # nick = ""
+        # name = ""
 
-        names = []
+        names = {
+            "preferred": None,
+            "alternatives": []
+        }
+        nameCount = 0
         
 
         #TODO this section is not returning the prefered last name
         if not self.is_individual():
-            return first, last
+            return None
         for child in self.get_child_elements():
 
             # include a check for the name aleady being set for this user. If it is, then just return that one as it's the primary name
-            if child.get_tag() == GEDCOM_TAG_NAME and not name:
+            if child.get_tag() == GEDCOM_TAG_NAME:
                 # some older GEDCOM files don't use child tags but instead
                 # place the name in the value of the NAME tag
-                if child.get_value() != "":
-                    name = child.get_value().split('/')
-                    if len(name) > 0:
-                        first = name[0].strip()
-                        if len(name) > 1:
-                            last = name[1].strip()
-                else:
-                    for childOfChild in child.get_child_elements():
-                        if childOfChild.get_tag() == GEDCOM_TAG_GIVEN_NAME:
-                            first = childOfChild.get_value()
-                        if childOfChild.get_tag() == GEDCOM_TAG_SURNAME:
-                            last = childOfChild.get_value()
-                        if childOfChild.get_tag() == GEDCOM_TAG_NICKNAME:
-                            nick = childOfChild.get_value()
+                
+                # if child.get_value() != "":
+                #     name = child.get_value().split('/')
+                #     if len(name) > 0:
+                #         first = name[0].strip()
+                #         if len(name) > 1:
+                #             last = name[1].strip()
+                # else:
+                    
+                nameTemp = {
+                    "type": None,
+                    "first": None,
+                    "last": None,
+                    "nick": None
+                }
+
                 for childOfChild in child.get_child_elements():
+
+                    # if the name element has a type, means it's not the primary name
+                    if childOfChild.get_tag() == GEDCOM_TAG_TYPE:
+                        nameTemp["type"] = childOfChild.get_value()
+
+                    if childOfChild.get_tag() == GEDCOM_TAG_GIVEN_NAME:
+                        nameTemp["first"] = childOfChild.get_value()
+                    if childOfChild.get_tag() == GEDCOM_TAG_SURNAME:
+                        nameTemp["last"] = childOfChild.get_value()
                     if childOfChild.get_tag() == GEDCOM_TAG_NICKNAME:
-                        nick = childOfChild.get_value()
+                        nameTemp["nick"] = childOfChild.get_value()
+                
+
+                # print(nameTemp)
+                # the primary name will appear first in the data, so we will know that's the primary name
+                if nameCount == 0:
+                    names["preferred"] = nameTemp
+                else:
+                    names["alternatives"].append(nameTemp)
+
+                nameCount += 1
+                        
+                # for childOfChild in child.get_child_elements():
+                #     if childOfChild.get_tag() == GEDCOM_TAG_NICKNAME:
+                #         nick = childOfChild.get_value()
 
         #TODO maybe return an array of the primary and secondary name so that the other name can also be displayed
         # maybe include things like perferred name as well. Maybe set it all up in a JSON object?
-        return first, last, nick
+        # return first, last, nick
+        return names
 
     def get_resource_ids(self):
         
@@ -1263,6 +1299,7 @@ class Person:
       self.surname = ""
       self.nick_name = ""
       self.call_name = ""
+      self.names = {}
       self.notes = ""
       self.text = ""
       self.occupation = ""
@@ -1297,11 +1334,13 @@ class GedcomParser:
             person = Person()
             person.id = self.__element_get_id(e)
 
-            g= e.get_name()
-            person.first_name = e.get_name()[0]
+            g = e.get_name()
+            # print(g)
+            person.first_name = g["preferred"]["first"]
             #TODO sort out why this is using not the prefered family name
-            person.surname = e.get_name()[1]
-            person.nick_name = e.get_name()[2]
+            person.surname = g["preferred"]["last"]
+            person.nick_name = g["preferred"]["nick"]
+            person.names = g
             person.notes = e.get_notes()
             person.occupation = e.get_occupation()
             person.gender = e.get_gender()
