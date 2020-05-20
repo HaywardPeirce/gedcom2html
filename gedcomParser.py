@@ -1351,14 +1351,15 @@ class GedcomParser:
             # get a list of JSON objects containing data about the files for this person, and assign the list of resource urls to the person object
             person.resources = self.__g.get_resources(resource_ids)
 
-            try:
-               person.birth_date = datetime.strptime(e.get_birth_data()[0], '%d %b %Y').date()
-            except:
-               pass
-            try:
-               person.death_date = datetime.strptime(e.get_death_data()[0], '%d %b %Y').date()
-            except:
-               pass
+            for dateFormat in ('%d %b %Y', '%d %B %Y'):
+                try:
+                    person.birth_date = datetime.strptime(e.get_birth_data()[0], dateFormat).date()
+                except:
+                    pass
+                try:
+                    person.death_date = datetime.strptime(e.get_death_data()[0], dateFormat).date()
+                except:
+                    pass
             # parents
             for parent_element in self.__g.get_parents(e):
                person.parent_id.append(self.__element_get_id(parent_element))
