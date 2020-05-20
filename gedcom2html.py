@@ -43,15 +43,39 @@ class Html:
       self.__fid.write("</div><!-- col -->\n")
       self.__fid.write("</div><!-- row -->\n")
       self.__fid.write("<div class='row'>\n")
-      self.__fid.write("<div class='col-sm-4' id='column-left'>\n")
+
+      self.__fid.write("\n")
+      self.__fid.write("<div class='container'>\n")
+      self.__fid.write("<ul class='nav nav-tabs'>\n")
+      self.__fid.write("<li class='active'><a data-toggle='tab' href='#menu1'>Ancestors</a></li>\n")
+      self.__fid.write("<li><a data-toggle='tab' href='#menu2'>Descendants</a></li>\n")
+      self.__fid.write("<li><a data-toggle='tab' href='#menu3'>Navigator</a></li>\n")
+      self.__fid.write("</ul>\n")
+      self.__fid.write("<div class='tab-content'>\n")
+      self.__fid.write("<div id='menu1' class='tab-pane fade active in'>\n")
+      
+      self.__fid.write("<div id='column-left'>\n")
       self.write_fan_chart_ancestors()
       self.__fid.write("</div><!-- col -->\n")
-      self.__fid.write("<div class='col-sm-4'>\n")
+      
+      self.__fid.write("</div>\n")
+      self.__fid.write("<div id='menu2' class='tab-pane fade'>\n")
+      
+      self.__fid.write("<div id='column-middle'>\n")
       self.write_fan_chart_descendants()
       self.__fid.write("</div><!-- col -->\n")
-      self.__fid.write("<div class='col-sm-4' id='column-right'>\n")
+      
+      self.__fid.write("</div>\n")
+      self.__fid.write("<div id='menu3' class='tab-pane fade'>\n")
+      
+      self.__fid.write("<div id='column-right'>\n")
       self.write_chart_navigator()
       self.__fid.write("</div><!-- col -->\n")
+      
+      self.__fid.write("</div>\n")
+      self.__fid.write("</div>\n")
+      self.__fid.write("</div>\n")
+      
       self.__fid.write("</div><!-- row -->\n")
       self.write_footer(sources)
  
@@ -259,7 +283,7 @@ class Html:
 
          
    def write_fan_chart_ancestors(self):
-      self.__fid.write("<h3>Ancestors</h3>\n")
+      # self.__fid.write("<h3>Ancestors</h3>\n")
       self.__fid.write("<div id='fanchart_ancestors'></div>\n")
       self.__fid.write("<script>\n")
       self.__fid.write("var json_ancestors = ")
@@ -270,7 +294,7 @@ class Html:
       self.__fid.write("</script>\n")
 
    def write_fan_chart_descendants(self):
-      self.__fid.write("<h3>Descendants</h3>\n")
+      # self.__fid.write("<h3>Descendants</h3>\n")
       self.__fid.write("<div id='fanchart_descendants'></div>\n")
       self.__fid.write("<script>\n")
       self.__fid.write("var json_descendants = ")
@@ -281,7 +305,7 @@ class Html:
       self.__fid.write("</script>\n")
       
    def write_chart_navigator(self):
-      self.__fid.write("<h3>Navigator</h3>\n")
+      # self.__fid.write("<h3>Navigator</h3>\n")
       self.__fid.write("<div id='chart_navigator'></div>\n")
       self.__fid.write("<script>\n")
       self.__fid.write('var jsonNavigator = {\n   "nodes": [\n')
@@ -362,10 +386,13 @@ class Gedcom2html:
 
    def __create_strings(self, p):
       #shortest_name
+      print(p.first_name)
       if p.nick_name:
          p.shortest_name = p.nick_name
-      else:
+      elif p.first_name:
          p.shortest_name = p.first_name.split(' ')[0]
+      else:
+         p.shortest_name = p.surname.split(' ')[0]
          
       #short_name - the persons first firstname and their lastname. Used in to Well, parents, partners, and children sections
       p.short_name = "%s %s " % (p.shortest_name, p.surname)

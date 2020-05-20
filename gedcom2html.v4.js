@@ -27,7 +27,7 @@ $(document).ready(function() {
 
 
 function drawChartNavigator(jsonNavigator){
-   var width = Math.min(1024, $("#column-right").width());
+   var width = Math.min(1024, $(".tab-content").width());
    var height = width, 
    padding = 0;
    
@@ -209,7 +209,7 @@ function drawChartNavigator(jsonNavigator){
 };
 
 function drawFanChart(json, boolAncestors){
-   var width = Math.min(1024, $("#column-left").width());
+   var width = Math.min(1024, $(".tab-content").width());
 
    var height = width,
       radius = width / 2,
